@@ -1,0 +1,331 @@
+.orig x3100 ;start at x3100
+;R1 will contain the pattern the user entered
+;R4 will have the count of even numbers
+;R5 will have the count of odd numbers
+
+LEA R0, INTRO		;LEA R0 with our first prompt to user
+PUTS				;prints the message to the screen 
+
+LEA R1, PATTERN		;LEA R0 with the allocated space for digits
+
+LOOP
+	GETC			;takes a char
+	OUT				;writes a char
+	JSR VALIDINPUT	;test if the user entered a correct char
+	ADD R2,R2,#0	;test if the num was correct
+	BRz CORRECT		;if its 0 then we go to CORRECT indicating it was a digit 0-9
+	BRn INCORRECT	;if its -1 then it was wrong not 0-9
+	BRp NEXT		;if its a 1 then it was a zero indicating that the input is over
+	
+CORRECT
+	STR R0, R1,#0	;stores the num user entered into pattern
+	ADD R1,R1,#1	;increment R1 to go to next memory location
+	BR LOOP			;go back into loop until it don’t work anymore
+	
+INCORRECT
+	LD R0,NEWLINE	;LD R0 for newline
+	OUT				;prints newline
+	LEA R0, ERROR_MESSAGE	;display error to the user
+	PUTS				;prints error
+	BR LOOP				;restart and go back into loop
+NEXT
+	STR R0,R1,#0		;store the zero
+	LEA R1, PATTERN		;LEA R1 with the pattern digits
+	BR LOOP2			;go into the next part of the program
+
+LOOP2 
+	LDR R6,R1,#0	;load the first thing from pattern
+	BRz FINAL		;since we allocated the user to be allowed to enter 99 digits if its null meaning theres nothing after 0
+	AND R6, R6, #1	;to clear all the bits except the last bit which we want
+	BRp ODD			;if its 1 then it a odd number
+
+EVEN
+	ADD R4,R4,#1	;add 1 to the count of evens
+	ADD R1,R1,#1	;incrementing to next memory block
+	BR LOOP2		;go back
+	
+ODD
+	ADD R5,R5,#1	;add 1 to the count of odds
+	ADD R1,R1,#1	;incrementing to the next memory block
+	BR LOOP2		;go back
+
+FINAL
+	;converting the even count to ascii
+	
+	AND R0,R0,#0	;clear R0 we are going to use it for a newline
+	LD R0, NEWLINE	;LD R0 with a newline
+	OUT				;print newline
+	
+	AND R0,R0,#0	;clear we are going to use it
+	LEA R0, EVEN_PROMPT	;display the prompt to show user how many evens
+	PUTS				;prints
+	
+	
+	;for tenth place for '5'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG50		;load R1 w/-50
+	ADD R1,R4,R1		;we take the num of evens and -50
+	BRzp OVER50			;we have over 50 even digits
+	
+	;for tenth place for '4'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG40		;load R1 w/-40
+	ADD R1,R4,R1		;we take the num of evens and -40
+	BRzp OVER40			;we have over 40 even digits
+	
+	;for tenth place for '3'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG30		;load R1 w/-30
+	ADD R1,R4,R1		;we take the num of evens and -30
+	BRzp OVER30			;we have over 30 even digits
+	
+	;for tenth place for '2'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG20		;load R1 w/-20
+	ADD R1,R4,R1		;we take the num of evens and -20
+	BRzp OVER20			;we have over 20 even digits
+	
+	;for tenth place for '1'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	ADD R1,R4,#-10		;we take the num of evens and -10
+	BRzp OVER10			;we have over 10 even digits
+	BRn UNDER10			;if we have under 10 even digits then go to under10
+	
+UNDER10
+	LEA R0,PATTERN_EVENS_2CHARS	;load pattern 
+	LD R3, ASCII_48				;to convert num
+	ADD R4,R4,R3				;adding ascii 48 to num of evens
+	STR R4,R0,#0				;first digit is the number of ones
+	STR R6,R0,#1				;R6 is empty we need to tell the program to stop
+	PUTS						;prints the total
+	BR FINAL_ODDS				;go to the next part of the program
+	
+	
+OVER50
+	LEA R0,PATTERN_EVENS_2CHARS 		;load in the memory block allocated for 90+
+	LD R2,ASCII_5		;ascii digit for '5'
+	STR R2,R0,#0		;the first digit is '5'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINAL_ODDS		;go to next part of the program
+	
+OVER40
+	LEA R0,PATTERN_EVENS_2CHARS  ;load in the memory block allocated for 90+
+	LD R2,ASCII_4		;ascii digit for '4'
+	STR R2,R0,#0		;the first digit is '4'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINAL_ODDS		;go to the next part of the program
+	
+OVER30
+	LEA R0,PATTERN_EVENS_2CHARS 		;load in the memory block allocated for 90+
+	LD R2,ASCII_3		;ascii digit for '3'
+	STR R2,R0,#0		;the first digit is '3'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINAL_ODDS		;go to next part of the program
+
+OVER20
+	LEA R0,PATTERN_EVENS_2CHARS 		;load in the memory block allocated for 90+
+	LD R2,ASCII_2		;ascii digit for '2'
+	STR R2,R0,#0		;the first digit is '2'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINAL_ODDS	
+	
+OVER10
+	LEA R0,PATTERN_EVENS_2CHARS 		;load in the memory block allocated for 90+
+	LD R2,ASCII_1		;ascii digit for '1'
+	STR R2,R0,#0		;the first digit is '1'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINAL_ODDS	
+	
+FINAL_ODDS
+	LD R0,NEWLINE	;LD R0 with newline
+	OUT				;prints
+	LEA R0, ODD_PROMPT
+	PUTS			;prints the prompt
+	BR STEP
+	
+STEP
+	;for tenth place for '5'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG50		;load R1 w/-50
+	ADD R1,R5,R1		;we take the num of evens and -50
+	BRzp OVER50_2		;we have over 50 even digits
+	
+	;for tenth place for '4'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG40		;load R1 w/-40
+	ADD R1,R5,R1		;we take the num of evens and -40
+	BRzp OVER40_2		;we have over 40 even digits
+	
+	;for tenth place for '3'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG30		;load R1 w/-30
+	ADD R1,R5,R1		;we take the num of evens and -30
+	BRzp OVER30_2		;we have over 30 even digits
+	
+	;for tenth place for '2'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	LD R1, NEG20		;load R1 w/-20
+	ADD R1,R5,R1		;we take the num of evens and -20
+	BRzp OVER20_2		;we have over 20 even digits
+	
+	;for tenth place for '1'
+	AND R1,R1,#0		;clear R1 if we don't number gets messed up
+	ADD R1,R5,#-10		;we take the num of evens and -10
+	BRzp OVER10_2		;we have over 10 even digits
+	BRn UNDER10_2
+
+UNDER10_2
+	LEA R0,PATTERN_ODD_2CHARS	;load pattern 
+	LD R3, ASCII_48				;to convert num
+	ADD R5,R5,R3				;adding ascii 48 to num of odds
+	STR R5,R0,#0				;first digit is the number of ones
+	STR R6,R0,#1				;R6 is empty we need to tell the program to stop
+	PUTS						;prints 
+	BR FINALE					;go to halt
+	
+OVER50_2
+	LEA R0,PATTERN_ODD_2CHARS 		;load in the memory block allocated for the possible two digits
+	LD R2,ASCII_5		;ascii digit for '5'
+	STR R2,R0,#0		;the first digit is '5'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINALE			;go to halt
+	
+OVER40_2
+	LEA R0,PATTERN_ODD_2CHARS  ;load in the memory block allocated for the possible two digits
+	LD R2,ASCII_4		;ascii digit for '4'
+	STR R2,R0,#0		;the first digit is '4'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINALE			;go to halt
+	
+OVER30_2
+	LEA R0,PATTERN_ODD_2CHARS 		;load in the memory block allocated for the possible two digits
+	LD R2,ASCII_3		;ascii digit for '3'
+	STR R2,R0,#0		;the first digit is '3'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINALE			;go halt
+	
+OVER20_2
+	LEA R0,PATTERN_ODD_2CHARS 		;load in the memory block allocated for the possible two digits
+	LD R2,ASCII_2		;ascii digit for '2'
+	STR R2,R0,#0		;the first digit is '2'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINALE			;go to halt
+	
+OVER10_2
+	LEA R0,PATTERN_ODD_2CHARS 		;load in the memory block allocated for the possible two digits
+	LD R2,ASCII_1		;ascii digit for '1'
+	STR R2,R0,#0		;the first digit is '1'
+	LD R3, ASCII_48		;load in 48 we are going to convert the remainder
+	ADD R1,R1,R3		;converts into ascii
+	STR R1,R0,#1		;store the remainder part in the second spot
+	STR R6,R0,#2		;R6 has a zero we need it so it knows when to stop
+	PUTS				;prints the number to console
+	BR FINALE			;go to half
+	
+FINALE
+	HALT
+
+INTRO .stringz "Enter #, 0 if end "
+EVEN_PROMPT .stringz "# even dgts: "
+ODD_PROMPT .stringz "# odd dgts "
+ERROR_MESSAGE .stringz "Retry "
+NEWLINE .fill x0A
+
+NEG20 .fill #-20
+NEG30 .fill #-30
+NEG40 .fill #-40
+NEG50 .fill #-50
+
+;ascii digits for the tenth place
+ASCII_1 .fill x0031
+ASCII_2 .fill x0032
+ASCII_3 .fill x0033
+ASCII_4 .fill x0034
+ASCII_5 .fill x0035
+ASCII_48 .fill #48
+
+;this is the spots allocated for even digits
+;PATTERN_ODD .blkw #1
+PATTERN_EVENS_2CHARS .blkw #2
+.fill #0
+PATTERN_ODD_2CHARS .blkw #2
+.fill #0
+PATTERN .blkw #60
+
+;pre condition: R0 hopefully contains the correct 0-9 digit
+;post condition: R0 will still contain something
+;R2= 0 if the number is valid
+;R2= -1if the number is not valid
+;R2= 1 if the number is zero so we can go to next step
+VALIDINPUT
+	ST R7, SaveR7
+	ST R1, SaveR1
+	LD R1, LOWERBOUND
+	ADD R1, R0,R1
+	BRn INVALID			;if number is negative then out of bounds
+	BRz ZERO			;if number is 0 then go to zero
+	LD R1, HIGHERBOUND
+	ADD R1,R0,R1		
+	BRp INVALID			;if number is positive then out of bounds
+	BRnz VALID			;if anything else then its valid
+
+INVALID
+	AND R2,R2,#0
+	ADD R2,R2,#-1
+	BR GO
+
+VALID
+	AND R2,R2,#0
+	BR GO
+	
+ZERO
+	AND R2,R2,#0
+	ADD R2,R2,#1
+	BR GO
+	
+GO
+	LD R7,SaveR7
+	LD R1, SaveR1
+	RET
+
+LOWERBOUND .fill #-48
+HIGHERBOUND .fill #-57
+SaveR7 .blkw #1
+SaveR1 .blkw #1
+.end

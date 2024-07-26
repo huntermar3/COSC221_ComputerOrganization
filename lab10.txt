@@ -1,0 +1,36 @@
+In this programming activity, you will be writing an LC-3 assembly program that will examine a given 16-bit value stored in a given memory location. Your program should count the number of 1s that occur in the given value..
+HINT: You can examine each bit of a given value by shifting the value by one bit to the left repeatedly and looking at the resulting value of  MSB (sign bit).
+Your program should assume that the initial bit pattern is in memory location labeled PATTERN. Your program should count the number of 1s in PATTERN and store the count in memory location labeled NUM_ONES. Your program should start at memory location x3100
+=================================================================
+.orig x3100		;start x3100
+
+
+;R0 will contain the pattern
+;R1 will be the loop counter
+;R2 will be the number of 1’s
+
+
+LD R0, PATTERN	;load PATTERN into R0
+ADD R1,R1,#15	;LOAD R1 w/15 for loop counter
+LOOP BRn DONE	;if the counter is negative it is done
+ADD R0,R0,#0	; set CC
+BRn NEGATIVE 	;if CC is negative go to negative
+POSITIVE 
+	ADD R0,R0,R0 ;add it to itself to check next
+ BR NEXT
+NEGATIVE
+	ADD R2,R2,#1 ;add 1 to the count of 1s
+	ADD R0,R0,R0 ;add it to itself to check next 
+	BR NEXT
+
+
+NEXT
+	ADD R1,R1,#-1 ;decrement the loop counter 
+	BR LOOP
+DONE STI R2, NUM_ONES
+Halt
+
+
+PATTERN .fill xF00F
+NUM_ONES .fill x3150
+.end

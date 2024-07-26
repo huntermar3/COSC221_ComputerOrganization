@@ -1,0 +1,63 @@
+In this programming activity, you will be writing an LC-3 assembly program that will examine a given 16-character string consisting of only '0's and '1's and count the number of 1s that occur in the given string. 
+
+
+Your program should prompt for and retrieve the 16-character string from the keyboard and count the number of '1's in the input string. You must store the input string into a block of memory labeled BIT_STRING (.blkw #16) and store the number of '1's counted into a memory location labeled NUM_ONES. Your program should start at memory location x3100.
+Example Run: 
+Enter a 16-bit string: 1111000000001111 [user input]
+====================================================================
+.orig x3100 ;start at x3100
+;R1 will contain the loop counter 
+;R2 will have num of ones 
+;R3 will be for filling up the 16 memory locations
+;R4 will be the register that contains if its a 1 or 0
+
+LEA R0, INTRO			;lea r0 w/ the prompt telling the user what to do
+PUTS					;actually displays INTRO
+
+LD R1,COUNT			;Initialized the loop counter 
+LEA R3, BIT_STRING		;reserves 16 bits
+
+LOOP GETC				;takes input
+OUT					;writes the output
+STR R0, R3,#0			;stores result from R0 which letter is stored in
+ADD R3,R3,#1			;go to next memory block
+BR INPUT_COUNTER
+
+INPUT_COUNTER
+	ADD R1,R1,#-1 		;decrement loop counter
+BRp LOOP			;as long as loop is pos keep going
+
+AND R3,R3, #0			;lets clear r3 then reload
+AND R1,R1,#0			;clear r1 that has the loop counter we need another loop
+LD R1,COUNT			;initialized a new loop
+LEA R3, BIT_STRING		;starts at beginning
+
+LOOP2 LDR R4,R3,#0		;loads R3+0 into R4, the 0 will be incremented 
+AND R4,R4,#15			;changes ascii to 2’s complement
+BRp ONES				;if its a 1 its pos 
+
+ZERO
+	;AND R4,R4,#0		;clear r4 so the next memory location can start
+ADD R3,R3,#1		;go to the next memory block
+	ADD R1,R1,#-1		;decrement loop
+	BRp LOOP2			;if r1 is still pos go back into loop2
+	BR DONE			;all bits are done since the last thing in BIT_STRING is 0
+
+ONES
+	ADD R2,R2,#1		;add one to the count of 1s
+	ADD R3,R3,#1		;go to the next memory block
+	AND R4,R4,#0		;clear r4 so the next memory location can start
+	ADD R1,R1,#-1		;decrement loop
+	BRp LOOP2			;if r1 is still pos go back into loop2
+	
+DONE	ST R2, NUM_ONES	;when the loop is over store the number of ones
+
+HALT
+
+INTRO .stringz “Enter a 16-bit string: “
+NUM_ONES .fill x3150
+COUNT .fill #16
+BIT_STRING .blkw #16
+
+
+.end

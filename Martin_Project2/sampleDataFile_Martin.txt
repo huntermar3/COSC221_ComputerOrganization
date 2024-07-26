@@ -1,0 +1,25 @@
+SAMPLE DATA FILE
+
+-Is there any specific inputs?
+	Please set the following addresses with
+		[x3000] = 49
+		[x3001] = 50
+		[x3002] = 51
+		[x3003] = 52
+		[x3004] = 53
+		
+	Then please set these following addresses with
+		[x3120] = [x3000]
+		[x3121] = [x3001]
+		[x3122] = [x3002]
+		
+	For the sum I used a STI so, please set the following address
+		[x311E] = [x20FF]
+	
+-Output
+	After the program is ran, you will see that [x3000] - [x3004] will contain
+		[x3000] = 1
+		[x3001] = 2
+		[x3002] = 3
+		[x3003] = 4
+		[x3004] = 5

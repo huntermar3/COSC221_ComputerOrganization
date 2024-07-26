@@ -1,0 +1,84 @@
+;Lecture 04-11 Input Validation
+
+;Prompt the user for a lowercase character 'a' - 'z' and display the corresponding uppercase character.
+
+.orig x3000
+
+LEA R0, PROMPT	; display a prompt
+PUTS
+
+GETC	; retrieve input from keyboard
+OUT	; echo display the input
+
+JSR isLowerCase
+
+; EC +2pts
+    ;Add code to use the R5 return value to  display an error message and exit
+; or EC +5pts
+    ;Add code to use the R5 return value to  display an error message and allow user to try again ;until a lowercase letter is eventually entered.
+
+JSR toUpperCase
+ADD R2, R0, #0
+
+LD R0, NEWLINE
+OUT	
+
+
+LEA R0, LABEL	; display a label
+PUTS	
+
+ADD R0, R2, #0; display the result
+OUT
+HALT
+
+
+PROMPT .stringz "Enter a lowercase character 'a' - 'z': "
+LABEL .stringz "The uppercase version is: "
+NEWLINE     .fill x0A
+
+; Pre-condition: R0 contains a lowercase character
+; Post-condition: R0 contains the corresponding uppercase letter.
+toUpperCase
+    ST R7, SaveR7tuc
+    ST R1, SaveR1tuc
+    LD R1, ASCII_CONVERT    ; convert to uppercase
+    ADD R0, R1, R0
+    LD R7, SaveR7tuc
+    LD R1, SaveR1tuc
+    RET
+    
+    ASCII_CONVERT .fill #-32
+    SaveR7tuc   .blkw #1
+    SaveR1tuc   .blkw #1
+
+
+; Pre-condition: R0 contains an ASCII character
+; Post-condition: R0 remains unchanged
+;   R5 = 0 if R0 contained a lowercase letter
+;   R5 = -1 if R0 does not contain a lowercase letter
+isLowerCase
+    ST R7, SaveR7ilc
+    ST R1, SaveR1ilc
+    LD R1, lowera
+    ADD R1, R0, R1      ; R1 = R0 -97
+    BRn invalid
+    LD R1, lowerz
+    ADD R1, R0, R1      ; R1 = R0 -122
+    BRp invalid
+valid
+    AND R5, R5, #0
+    BR restore
+invalid
+    AND R5, R5, #0
+    ADD R5, R5, #-1
+restore
+    LD R7, SaveR7ilc
+    LD R1, SaveR1ilc
+    RET
+    
+    lowera      .fill #-97
+    lowerz      .fill #-122
+    SaveR7ilc   .blkw #1
+    SaveR1ilc   .blkw #1
+
+.end

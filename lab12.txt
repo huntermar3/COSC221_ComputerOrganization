@@ -1,0 +1,95 @@
+;just reusing code from last lab
+.orig x3100 ;start at x3100
+;R1 will contain the loop counter 
+;R2 will have num of ones 
+;R3 will be for filling up the 16 memory locations
+;R4 will be the register that contains if its a 1 or 0
+;R5 loads -10
+;R6 holds the result of -10 and nums_ones
+LEA R0, INTRO ;lea r0 w/ the prompt telling the user what to do
+PUTS ;actually displays INTRO
+LD R1,COUNT ;Initialized the loop counter 
+LEA R3, BIT_STRING ;reserves 16 bits
+LOOP GETC ;takes input
+OUT ;writes the output
+STR R0, R3,#0 ;stores result from R0 which letter is stored in
+ADD R3,R3,#1 ;go to next memory block
+BR INPUT_COUNTER
+INPUT_COUNTER
+ADD R1,R1,#-1 ;decrement loop counter
+BRp LOOP ;as long as loop is pos keep going
+AND R3,R3, #0 ;lets clear r3 then reload
+AND R1,R1,#0 ;clear r1 that has the loop counter we need another loop
+LD R1,COUNT ;initialized a new loop
+LEA R3, BIT_STRING ;starts at beginning
+LOOP2 LDR R4,R3,#0 ;loads R3+0 into R4, the 0 will be incremented 
+AND R4,R4,#15 ;changes ascii to 2’s complement
+BRp ONES ;if its a 1 its pos 
+ZERO
+ADD R3,R3,#1 ;go to the next memory block
+ADD R1,R1,#-1;decrement loop
+BRp LOOP2;if r1 is still pos go back into loop2
+ADD R2,R2,#-1;I kept getting an off by one error so I just substracted 1
+ONES
+ADD R2,R2,#1;add one to the count of 1s
+ADD R3,R3,#1;go to the next memory block
+AND R4,R4,#0;clear r4 so the next memory location can start
+ADD R1,R1,#-1;decrement loop
+BRp LOOP2;if r1 is still pos go back into loop2
+AND R0,R0,#0 ;clear R0 we are going to use it
+LD R0, NEWLINE ;so we can start on the next line
+OUT ;so that the newline is printed to the console
+AND R0,R0,#0 ;clear R0 we are going to use it
+LEA R0, REQUIRED_PROMPT ;lea r0 with the first message
+PUTS ;prints the message
+AND R0,R0,#0 ;clear R0 we are going to use it
+LEA R0, BIT_STRING ;lea R0 w the string
+PUTS ;prints
+AND R0,R0,#0 ;clear R0 we are going to use it
+LD R0, NEWLINE ;starts newline
+OUT ;prints the one thing
+AND R0,R0,#0 ;clear R0 we are going to use it
+LEA R0,REQUIRED_PROMPT2 ;lea r0 with the second message
+PUTS ;prints the message;
+ADD R5,R5,#-10 ;load -10 into R5
+AND R1,R1,#0 ;clear R1 we are going to use it
+AND R3,R3,#0 ;clear R3 we are going to use it
+AND R6,R6,#0 ;clear R6 we are going to use it
+LD R1, ASCII_1 ;LD R1 with x0031 (‘1’)
+LD R3, CONVERT_ASCII ;LD R3 with #48
+ADD R6, R2,R5 ;check if number is over 10 (R2 is num of ones)
+BRzp OVER10 ;if num_ones is over 10 the result is pos or equal 10 its 0
+UNDER10
+ADD R7,R2,R3;converts the num of ones to ascii
+LEA R0, PATTERN2;LEA the block that is reserved for only one digit
+STR R7,R0,#0;the num we converted to ascii is in R7
+PUTS;prints
+BR COMPLETE;go to newline because it looks nicer
+OVER10
+ADD R6,R6,R3;convert 2’s complement to ASCII 
+LEA R0, PATTERN;LEA the block that is reserved for 2 digits
+STR R1,R0,#0;contains ascii ‘1’
+STR R6, R0,#1;ascii for second digit
+PUTS;prints
+BR COMPLETE;go to newline because it looks nicer
+COMPLETE
+AND R0,R0,#0 ;clear R0 since we are using it
+LD R0, NEWLINE ;starts newline
+OUT ;prints the one thing
+DONE ST R2, NUM_ONES ;when the loop is over store the number of ones
+HALT
+INTRO .stringz "Enter a 16-bit string: "
+NUM_ONES .fill x3150
+COUNT .fill #16
+BIT_STRING .blkw #16
+.fill #0
+NEWLINE .fill x0A
+REQUIRED_PROMPT .stringz "You entered: "
+REQUIRED_PROMPT2 .stringz "Number of 1s in your input is: "
+PATTERN .blkw #2
+.fill #0
+ASCII_1 .fill x0031
+CONVERT_ASCII .fill #48
+PATTERN2 .blkw #1
+.fill #0
+.end
